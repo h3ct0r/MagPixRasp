@@ -1,15 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#from dronekit import connect, VehicleMode
 import dronekit
-import time, sys
-#from threading import Thread
+import time
 
-class GpsGetter():
-    def __init__ (self, usb_dev):
-        #Thread.__init__(self)
 
+class GpsGetter:
+    def __init__(self, usb_dev):
         self.usb_dev = usb_dev
         self.vehicle = None
         self.lat = 0
@@ -43,13 +40,17 @@ class GpsGetter():
     def get_pos(self):
         return self.lat, self.lon
 
+    def get_alt(self):
+        return self.alt
 
-#gps = GpsGetter("/dev/ttyAMA0")
-#gps.connect()
 
-#while True:
-#    pos = gps.get_pos()
-#    if pos[0] != None:
-#        print "------------->", gps.get_pos()
-#    
-#    time.sleep(0.5)
+if __name__ == '__main__':
+    gps = GpsGetter('/dev/ttyAMA0')
+    gps.connect()
+
+    while True:
+        pos = gps.get_pos()
+        if pos[0]:
+            print '-->', gps.get_pos()
+
+        time.sleep(0.5)
