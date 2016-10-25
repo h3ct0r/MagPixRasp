@@ -29,8 +29,8 @@ import pigpio # http://abyz.co.uk/rpi/pigpio/python.html
 
 import argparse
 
-from cam_trigger.poller_main import poller_cam_trigger
-from continuous.poller_main import poller_continuous
+from cam_trigger.poller_main import PollerCamTrigger
+from continuous.poller_main import PollerContinuous
 
 pi = None
 p1 = None
@@ -81,11 +81,11 @@ if __name__ == "__main__":
 
     if args.continuous:
         print '[MAIN]', 'Using CONTINUOUS MODE'
-        p1 = poller_continuous(args.mag, args.pixhawk, args.output)
+        p1 = PollerContinuous(args.mag, args.pixhawk, args.output)
     else:
         print '[MAIN]', 'Using CAM_TRIGGER MODE'
         print '[MAIN]', 'Using GPIO port for camera trigger:', args.trigger_pin
         print '[MAIN]', 'Starting input logger...'
 
         pi = pigpio.pi()
-        p1 = poller_cam_trigger(pi, args.trigger_pin, args.mag, args.pixhawk, args.output)
+        p1 = PollerCamTrigger(pi, args.trigger_pin, args.mag, args.pixhawk, args.output)
