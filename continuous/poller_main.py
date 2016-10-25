@@ -35,7 +35,7 @@ class PollerContinuous:
         self.led1 = 18
         self.led2 = 24
 
-        self.cooldown_time = 1.5
+        self.cooldown_time = 1
 
         self.define_log()
         self.init_leds()
@@ -112,7 +112,8 @@ class PollerContinuous:
         
         print '[POLLER] Recorded sample at:', pos, 'alt:', alt
 
-        file_.close()
+        time.sleep(0.5)
+
         GPIO.output(self.led2, GPIO.HIGH)
         GPIO.output(self.led1, GPIO.LOW)
 
