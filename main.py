@@ -25,6 +25,7 @@
 
 import signal
 import sys
+import GPIO
 import pigpio # http://abyz.co.uk/rpi/pigpio/python.html
 
 import argparse
@@ -75,22 +76,41 @@ def main():
     parser.set_defaults(feature=True)
     args = parser.parse_args()
 
-    signal.signal(signal.SIGINT, signal_handler)
+    #signal.signal(signal.SIGINT, signal_handler)
 
     print '[MAIN]', 'Using output:', args.output
     print '[MAIN]', 'Using pixhawk device:', args.pixhawk
     print '[MAIN]', 'Using magnetic device:', args.mag
 
-    if args.continuous:
-        print '[MAIN]', 'Using CONTINUOUS MODE'
-        p1 = PollerContinuous(args.mag, args.pixhawk, args.output)
-    else:
-        print '[MAIN]', 'Using CAM_TRIGGER MODE'
-        print '[MAIN]', 'Using GPIO port for camera trigger:', args.trigger_pin
-        print '[MAIN]', 'Starting input logger...'
+    try:
+        if args.continuous:
+            print '[MAIN]', 'Using CONTINUOUS MODE'
+            p1 = PollerContinuous(args.mag, args.pixhawk, args.output)
+        else:
+            print '[MAIN]', 'Using CAM_TRIGGER MODE'
+            print '[MAIN]', 'Using GPIO port for camera trigger:', args.trigger_pin
+            print '[MAIN]', 'Starting input logger...'
 
-        pi = pigpio.pi()
-        p1 = PollerCamTrigger(pi, args.trigger_pin, args.mag, args.pixhawk, args.output)
+            pi = pigpio.pi()
+            p1 = PollerCamTrigger(pi, args.trigger_pin, args.mag, args.pixhawk, args.output)
+    except KeyboardInterrupt:
+        GPIO.cleanup()
+        if pi and p1:
+            print '[MAIN] cancelling poll...'
+            p1.cancel()
+            pi.stop()
+            print '[MAIN] poll cancelled!...'
+        elif p1:
+            print '[MAIN] cancelling poll...'
+            p1.cancel()
+            print '[MAIN] poll cancelled!...'
+
+        elif pi:
+            print '[MAIN] cancelling poll...'
+            pi.stop()
+            print '[MAIN] poll cancelled!...'
+
+        print '[MAIN] Exiting!'
 
 if __name__ == "__main__":
     main()
