@@ -25,7 +25,7 @@
 
 import signal
 import sys
-import GPIO
+import RPi.GPIO as GPIO
 import pigpio # http://abyz.co.uk/rpi/pigpio/python.html
 
 import argparse
