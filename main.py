@@ -27,7 +27,7 @@ import signal
 import sys
 import RPi.GPIO as GPIO
 import pigpio # http://abyz.co.uk/rpi/pigpio/python.html
-
+import time
 import argparse
 
 from cam_trigger.poller_main import PollerCamTrigger
@@ -93,6 +93,9 @@ def main():
 
             pi = pigpio.pi()
             p1 = PollerCamTrigger(pi, args.trigger_pin, args.mag, args.pixhawk, args.output)
+
+        while True:
+            time.sleep(1)
     except KeyboardInterrupt:
         GPIO.cleanup()
         if pi and p1:
