@@ -110,7 +110,5 @@ def main():
             pi.stop()
             print '[MAIN] poll cancelled!...'
 
-        print '[MAIN] Exiting!'
-
 if __name__ == "__main__":
     main()

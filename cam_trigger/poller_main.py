@@ -84,6 +84,7 @@ class PollerCamTrigger:
 
         print '[MAG] Starting magnetometer getter...'
         self.mag = MagPoller(device=self.mag_path, is_continuous=False)
+        self.mag.daemon = True
         self.mag.start()
         time.sleep(1)
         print '[MAG] Magnetometer OK'
