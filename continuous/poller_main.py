@@ -120,7 +120,12 @@ class PollerContinuous:
 
     def cancel(self):
         self.finish = True
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self.led1, GPIO.OUT)
+        GPIO.setup(self.led2, GPIO.OUT)
+
         GPIO.output(self.led2, GPIO.LOW)
+        GPIO.output(self.led1, GPIO.LOW)
         GPIO.cleanup()
         self.mag.stop()
         self.mag.close()
