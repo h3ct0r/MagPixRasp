@@ -169,6 +169,7 @@ class PollerCamTrigger:
     def cancel(self):
         self.finish = True
         GPIO.output(self.led2, GPIO.LOW)
+        GPIO.cleanup()
         self._cb.cancel()
         self.mag.stop()
         self.mag.close()

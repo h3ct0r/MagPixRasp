@@ -60,8 +60,10 @@ def signal_handler(sig, frame_r):
 
     sys.exit(1)
 
-if __name__ == "__main__":
-    global pi, p1
+
+def main():
+    global pi
+    global p1
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--continuous', dest='continuous', action='store_true')
@@ -89,3 +91,6 @@ if __name__ == "__main__":
 
         pi = pigpio.pi()
         p1 = PollerCamTrigger(pi, args.trigger_pin, args.mag, args.pixhawk, args.output)
+
+if __name__ == "__main__":
+    main()
