@@ -40,8 +40,6 @@ class PollerContinuous:
         self.define_log()
         self.init_leds()
         self.init_usb_connections()
-        self.start()
-        self.cancel()
 
     def init_leds(self):
         """
@@ -72,16 +70,6 @@ class PollerContinuous:
         file_ = open(self.filename, 'a')
         file_.write("Waypoint;Timestamp;X;Y;Z;T;t;Lat;Lng;Alt\n")
         file_.close()
-
-    def start(self):
-        """
-        Start polling GPS and MAG data, and save at cooldown_time intervals
-        :return:
-        """
-        while not self.finish:
-            self.acquire_mag_info()
-            time.sleep(self.cooldown_time)
-            pass
 
     def init_usb_connections(self):
         """

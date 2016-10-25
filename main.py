@@ -37,31 +37,6 @@ pi = None
 p1 = None
 
 
-def signal_handler(sig, frame_r):
-    global pi, p1
-
-    print '[SIG] sig received, ', pi, p1
-
-    if pi and p1:
-        print '[SIG] cancelling poll...'
-        p1.cancel()
-        pi.stop()
-        print '[SIG] poll cancelled!...'
-        print '[SIG] Exiting!'
-        sys.exit(0)
-    elif p1:
-        print '[SIG] cancelling poll...'
-        p1.cancel()
-        print '[SIG] poll cancelled!...'
-
-    elif pi:
-        print '[SIG] cancelling poll...'
-        pi.stop()
-        print '[SIG] poll cancelled!...'
-
-    sys.exit(1)
-
-
 def main():
     global pi
     global p1
@@ -76,8 +51,6 @@ def main():
     parser.set_defaults(feature=True)
     args = parser.parse_args()
 
-    #signal.signal(signal.SIGINT, signal_handler)
-
     print '[MAIN]', 'Using output:', args.output
     print '[MAIN]', 'Using pixhawk device:', args.pixhawk
     print '[MAIN]', 'Using magnetic device:', args.mag
@@ -86,6 +59,10 @@ def main():
         if args.continuous:
             print '[MAIN]', 'Using CONTINUOUS MODE'
             p1 = PollerContinuous(args.mag, args.pixhawk, args.output)
+            while not p1.finish:
+                p1.acquire_mag_info()
+                time.sleep(p1.cooldown_time)
+                pass
         else:
             print '[MAIN]', 'Using CAM_TRIGGER MODE'
             print '[MAIN]', 'Using GPIO port for camera trigger:', args.trigger_pin
@@ -93,9 +70,9 @@ def main():
 
             pi = pigpio.pi()
             p1 = PollerCamTrigger(pi, args.trigger_pin, args.mag, args.pixhawk, args.output)
+            while p1.finish:
+                time.sleep(0.01)
 
-        while True:
-            time.sleep(1)
     except KeyboardInterrupt:
         GPIO.cleanup()
         if pi and p1:
