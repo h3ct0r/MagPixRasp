@@ -114,7 +114,7 @@ class PollerContinuous:
         alt = self.gps.get_alt()
         timestamp = calendar.timegm(time.gmtime())
 
-        v = self.mag.get()
+        v = self.mag.get_values()
         line = "{0};{1};{2};{3};{4};{5};{6};{7};{8};{9};\n".format(
             self.data_index, timestamp, v[0], v[1], v[2], v[3], v[4], pos[0], pos[1], alt)
         file_.write(line)

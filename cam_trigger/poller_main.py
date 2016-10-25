@@ -123,7 +123,7 @@ class PollerCamTrigger:
         timestamp = calendar.timegm(time.gmtime())
 
         for i in xrange(self.num_samples):
-            v = self.mag.get()
+            v = self.mag.get_values()
             line = str(self.wp_index) + ";" + str(timestamp) + ";" + str(v[0]) + ";" + str(v[1]) + ";" + str(v[2]) + ";" + str(v[3]) + ";" + str(v[4]) + ";" + str(pos[0]) +";"+ str(pos[1])+ "\n"
             file_.write(line)
             time.sleep(0.2)
