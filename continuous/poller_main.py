@@ -3,71 +3,41 @@
 # -*- coding: utf-8 -*-
 ##########################################
 
-#from multiprocessing import Pool
-# CHANGELOG:
-# - 28 SEP - changed sampling to 10 measurements per trigger
-# - 29 SEP - fixed bug when selecting max int on a string
-
-import RPi.GPIO as GPIO
-import os, sys, numpy, glob
-import time, calendar
-import argparse
+import calendar
 import datetime
-import signal
-from mag_continuous import MagContinuous
+import glob
+import os
 import time
-import threading
+import RPi.GPIO as GPIO
 
-sys.path.insert(0, '../')
-from get_drone_gps import GpsGetter
-
-
-def signal_handler(sig, frame_r):
-    global pi, p1
-
-    print '[SIG] sig received, ', pi, p1
-
-    if pi and p1:
-        print '[SIG] cancelling poll...'
-        p1.cancel()
-        pi.stop()
-        print '[SIG] poll cancelled!...'
-        print '[SIG] Exiting!'
-        sys.exit(0)
-    elif p1:
-        print '[SIG] cancelling poll...'
-        p1.cancel()
-        print '[SIG] poll cancelled!...'
-
-    elif pi:
-        print '[SIG] cancelling poll...'
-        pi.stop()
-        print '[SIG] poll cancelled!...'
-        
-    sys.exit(1)
+from magnetic_poller.mag_poller import MagPoller
+from pixhawk.get_drone_gps import GpsGetter
 
 
-class SensorRead:
-    def __init__(self, usb_path, output_location):
+class PollerContinuous:
+    def __init__(self, mag_path, usb_path, output_location):
         """
         Init
+        :param mag_path:
         :param usb_path:
         :param output_location:
         """
         self.finish = False
+        self.gps = None
+        self.mag = None
 
         self.usb_path = usb_path
+        self.mag_path = mag_path
         self.output_location = output_location
-        self.filename = ""
+        self.filename = ''
         self.data_index = 0
-
-        self.define_log()
 
         self.led1 = 18
         self.led2 = 24
 
         self.cooldown_time = 1.5
 
+        self.define_log()
         self.init_leds()
         self.init_usb_connections()
         self.start()
@@ -94,10 +64,10 @@ class SensorRead:
         if len(files) > 0:
             exp_size = max([int(f.split('.')[0]) for f in files])
 
-        self.filename = '/home/pi/Documents/sensor_readings/' + str(exp_size + 1) + ".exp." + \
+        self.filename = self.output_location + str(exp_size + 1) + ".exp_continuous." + \
                         str(datetime.datetime.now().strftime("%Y%m%d.%H%M%S")) + ".txt"
 
-        print '[SENSOR] Log file:', self.filename
+        print '[POLLER] Log file:', self.filename
 
         file_ = open(self.filename, 'a')
         file_.write("Waypoint;Timestamp;X;Y;Z;T;t;Lat;Lng;Alt\n")
@@ -118,16 +88,16 @@ class SensorRead:
         Start usb connections with the Pixhawk and Mag
         :return:
         """
-        print '[SENSOR] Starting gps getter...'
+        print '[POLLER] Starting gps getter...'
         self.gps = GpsGetter(self.usb_path)
         self.gps.connect()
-        print '[SENSOR] Gps OK'
+        print '[POLLER] Gps OK'
 
-        print '[SENSOR] Starting magnetometer getter...'
-        self.mag = MagContinuous()
+        print '[POLLER] Starting magnetometer getter...'
+        self.mag = MagPoller(device=self.mag_path, is_continuous=True)
         self.mag.start()
         time.sleep(1)
-        print '[SENSOR] Magnetometer OK'
+        print '[POLLER] Magnetometer OK'
 
     def acquire_mag_info(self):
         GPIO.setmode(GPIO.BCM)
@@ -137,7 +107,7 @@ class SensorRead:
         GPIO.output(self.led2, GPIO.LOW)
         GPIO.output(self.led1, GPIO.HIGH)
 
-        print "[SENSOR] Taking sample..."
+        print "[POLLER] Taking sample..."
         file_ = open(self.filename, 'a')
 
         pos = self.gps.get_pos()
@@ -152,29 +122,19 @@ class SensorRead:
         self.data_index += 1
         file_.close()
         
-        print '[SENSOR] Recorded sample at:', pos, 'alt:', alt
+        print '[POLLER] Recorded sample at:', pos, 'alt:', alt
 
         file_.close()
         GPIO.output(self.led2, GPIO.HIGH)
         GPIO.output(self.led1, GPIO.LOW)
 
-        print '\n\n[SENSOR] Ready for new trigger!\n\n'
+        print '\n\n[POLLER] Ready for new trigger!\n\n'
 
     def cancel(self):
         self.finish = True
         self.mag.stop()
         self.mag.close()
 
-pi = None
-p1 = None
-
 if __name__ == "__main__":
-    pi = None
-    p1 = None
-
-    camTrigger = 17
-
     print '[MAIN] Starting input logger...'
-
-    signal.signal(signal.SIGINT, signal_handler)
-    p1 = SensorRead("/dev/ttyAMA0", "/home/pi/Documents/sensor_readings/")
+    p1 = PollerContinuous('/dev/tty/USB0', '/dev/ttyAMA0', '/home/pi/Documents/sensor_readings/')

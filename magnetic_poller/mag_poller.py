@@ -1,19 +1,27 @@
 #!/usr/bin/python
 
-import serial, time
-from threading import Thread
-import re, numpy
+import re
+import time
+import numpy
+import serial
 from collections import deque
+from threading import Thread
 
-class MagContinuous(Thread):
-    def __init__(self, port="/dev/ttyUSB0"):
-        self.ser = serial.Serial(port, 9600)
+
+class MagPoller(Thread):
+    def __init__(self, device="/dev/ttyUSB0", is_continuous=True, window_size=5, debug=True):
+        self.ser = serial.Serial(device, 9600)
         if self.ser is None:
             print "[MAG] Magnetometer is not connected!"
         else:
             print "[MAG] Magnetometer is connected..."
 
-        self.window_size = 5
+        if is_continuous:
+            self.window_size = window_size
+        else:
+            self.window_size = 1
+
+        self.is_debug = debug
 
         self.X = deque()
         self.Y = deque()
@@ -25,13 +33,13 @@ class MagContinuous(Thread):
         self.is_stopped = False
         Thread.__init__(self)
     
-    def get(self):
+    def get_values(self):
         return numpy.array([
-            MagContinuous.get_avg_deque(self.X),
-            MagContinuous.get_avg_deque(self.Y),
-            MagContinuous.get_avg_deque(self.Z),
-            MagContinuous.get_avg_deque(self.T),
-            MagContinuous.get_avg_deque(self.Temp)])
+            MagPoller.get_avg_deque(self.X),
+            MagPoller.get_avg_deque(self.Y),
+            MagPoller.get_avg_deque(self.Z),
+            MagPoller.get_avg_deque(self.T),
+            MagPoller.get_avg_deque(self.Temp)])
         
     def run(self):
         while self.is_running:
@@ -51,10 +59,14 @@ class MagContinuous(Thread):
                 self.add_elem_to_deque(self.Z, float(l_clean[5]))
                 self.add_elem_to_deque(self.T, float(l_clean[7]))
                 self.add_elem_to_deque(self.Temp, float(l_clean[9]))
-                print '[MAG]', 'Updated mag values ...'
-                print '[MAG]', 'X:', len(self.X), 'Y:', len(self.Y), 'Z:', len(self.Z), 'T:', len(self.T)
+
+                if self.is_debug:
+                    print '[MAG]', 'Updated mag values ...'
+                    print '[MAG]', 'Values:', self.get_values()
+                    print '[MAG]', 'Length: X:{0}, Y:{1}, Z:{2}, T:{3}'.format(
+                        len(self.X), len(self.Y), len(self.Z), len(self.T))
             except Exception as e:
-                print '[ERROR]', e, l_clean, 'Original input:', line
+                print '[MAG] [ERROR]', e, l_clean, 'Original input:', line
                 pass
 
     def add_elem_to_deque(self, d, v):
@@ -74,14 +86,14 @@ class MagContinuous(Thread):
         while not self.is_stopped:
             pass
         self.ser.close()
-        print 'Serial port closed!'
+        print '[MAG] [ERROR] Serial port closed!'
 
 
 if __name__ == "__main__":
-    m = MagContinuous()
+    m = MagPoller()
     m.start()
     for i in range(10):
-       print m.get()
-       time.sleep(0.5)
+        print m.get_values()
+        time.sleep(0.5)
     m.stop()
     m.close()
