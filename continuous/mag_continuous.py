@@ -27,11 +27,11 @@ class MagContinuous(Thread):
     
     def get(self):
         return numpy.array([
-            Mag.get_avg_deque(self.X),
-            Mag.get_avg_deque(self.Y),
-            Mag.get_avg_deque(self.Z),
-            Mag.get_avg_deque(self.T),
-            Mag.get_avg_deque(self.Temp)])
+            MagContinuous.get_avg_deque(self.X),
+            MagContinuous.get_avg_deque(self.Y),
+            MagContinuous.get_avg_deque(self.Z),
+            MagContinuous.get_avg_deque(self.T),
+            MagContinuous.get_avg_deque(self.Temp)])
         
     def run(self):
         while self.is_running:
@@ -78,7 +78,7 @@ class MagContinuous(Thread):
 
 
 if __name__ == "__main__":
-    m = Mag()
+    m = MagContinuous()
     m.start()
     for i in range(10):
        print m.get()

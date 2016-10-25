@@ -7,11 +7,11 @@ A magnetic sensor that communicates via
 
 ## Install modules
 
-pip install pyusb
-pip install pyserial
-sudo apt-get install python-dev
-pip install dronekit
-pip install MAVProxy
+- pip install pyusb
+- pip install pyserial
+- sudo apt-get install python-dev
+- pip install dronekit
+- pip install MAVProxy
 
 ## Usage
 
